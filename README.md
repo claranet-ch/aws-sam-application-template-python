@@ -42,7 +42,10 @@ The following steps assume you already [installed and configured](https://docs.a
 
 ### Init
 
-1. clone the repository
+1. create the SAM application using this repository as template
+   ```
+   $ sam init --location https://github.com/claranet-ch/aws-sam-application-template-python.git --name my-awesome-sam-app
+   ```
 2. run to create the virtual environment and install dependencies
    ```
    $ ./create_venv.sh
@@ -153,4 +156,4 @@ def lambda_handler(event, context):
 
 ## More resources
 
-* [License](LICENSE)
+- [License](LICENSE)
