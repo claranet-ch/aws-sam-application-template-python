@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  How to organize, test, log and trace an AWS SAM application written in Python
+
+Parameters:
+  Environment:
+    Default: staging
+    Type: String
+  PostsBucketName:
+    Default: posts
+    Type: String
+  PostsMetaTableName:
+    Default: posts-meta
+    Type: String
+  Project:
+    Default: aws-sam-application-template-python
+    Type: String
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: python3.9
+    Tags:
+      Environment: !Ref Environment
+      Project: !Ref Project
+    Timeout: 3
+    Tracing: Active # X-Ray tracing mode: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-tracing
+
+Resources:
+  #region --------------------------------------------------------------- Layers
+
+  LayerXRay:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${Project}-${Environment}-layer-x-ray"
+      ContentUri: layers/layer_x_ray/
+      CompatibleRuntimes:
+        - python3.9
+
+  #endregion -------------------------------------------------------------------
+
+  #region ---------------------------------------------------------- API Gateway
+
+  RestApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Cors: "'*'"
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'*'"
+              Access-Control-Allow-Methods: "'*'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'*'"
+              Access-Control-Allow-Methods: "'*'"
+      MinimumCompressionSize: 0
+      StageName: !Sub "${Environment}"
+
+  #endregion -------------------------------------------------------------------
+
+  #region -------------------------------------------------------------- Lambdas
+
+  PostsGetFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: functions/posts_get/
+      Environment:
+        Variables:
+          BUCKET_POSTS: !Sub "${Project}-${Environment}-${PostsBucketName}"
+          TABLE_POSTS: !Sub "${Project}-${Environment}-${PostsMetaTableName}"
+      FunctionName: !Sub "${Project}-${Environment}-posts-get"
+      Handler: handler.posts_get
+      Layers:
+        - !Ref LayerXRay
+      Events:
+        ApiEvent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /posts
+            Method: get
+            RestApiId:
+              Ref: RestApiGateway
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              !Sub "${Project}-${Environment}-${PostsMetaTableName}"
+        - S3ReadPolicy:
+            BucketName:
+              !Sub "${Project}-${Environment}-${PostsBucketName}"
+  
+  #endregion -------------------------------------------------------------------
+
+  #region ----------------------------------------------------------- S3 Buckets
+
+  PostsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Project}-${Environment}-${PostsBucketName}"
+  
+  #endregion -------------------------------------------------------------------
+
+  #region ------------------------------------------------------ DynamoDB Tables
+
+  PostsMetaTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Project}-${Environment}-${PostsMetaTableName}"
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      # TimeToLiveSpecification:
+      #   AttributeName: ttl
+      #   Enabled: true
+  
+  #endregion -------------------------------------------------------------------
+
+Outputs:
+  ApiEndpoint:
+    Description: "Posts API"
+    Value: !Sub "https://${RestApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  RestApiId:
+    Value: !Ref RestApiGateway

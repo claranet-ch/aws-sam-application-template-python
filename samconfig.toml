@@ -1,0 +1,11 @@
+version = 0.1
+[staging]
+[staging.deploy]
+[staging.deploy.parameters]
+stack_name = "aws-sam-application-template-python-3-9"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-vaj6of802ejo"
+s3_prefix = "aws-sam-application-template-python-3-9"
+region = "eu-west-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=\"staging\" PostsBucketName=\"posts\" PostsMetaTableName=\"posts-meta\" Project=\"aws-sam-application-template-python-3-9\""
