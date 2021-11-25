@@ -46,7 +46,7 @@ The following steps assume you already [installed and configured](https://docs.a
    ```
    $ sam init --location https://github.com/claranet-ch/aws-sam-application-template-python.git --name my-awesome-sam-app
    ```
-2. run to create the virtual environment and install dependencies
+2. create the virtual environment and install all dependencies for local development and testing
    ```
    $ ./create_venv.sh
    ```
@@ -74,15 +74,11 @@ The following steps assume you already [installed and configured](https://docs.a
 
 ### Deploy
 
-1. create the layers
-   ```
-   $ ./build_layers.sh
-   ```
-2. build the application
+1. build the application
    ```
    $ sam build
    ```
-3. deploy the application
+2. deploy the application
    ```
    $ sam deploy --guided
    ```
@@ -99,7 +95,18 @@ $ sam delete
 
 ### Function handler
 
-[TODO] Put the logic outside the handler
+The logic of the lambda is isolated in one file with postfix `_logic`. The handler
+read the relevant data from the event and context objects, instantiates clients and pass all of them to the logic (see [Dependency injection](https://en.wikipedia.org/wiki/Dependency_injection)).
+
+### Layers
+
+Layers are built by AWS SAM when you run `sam build` command.
+
+**IMPORTANT**
+
+> Remember to add the content `requirements.txt` located in each layer folder, in
+the `requirements.txt` file inside the folder `tests/`. This will allow to write
+and test your code locally.
 
 ### Testing
 
@@ -110,8 +117,8 @@ To write tests for AWS services we use
 
 ### Logging
 
-Instead of use the Python `print()` function, it is better to use the Python
-built-in [logging library](https://docs.python.org/3/library/logging.html).
+Instead of use the `print()` function, it is better to use the Python built-in
+[logging library](https://docs.python.org/3/library/logging.html).
 
 The code
 

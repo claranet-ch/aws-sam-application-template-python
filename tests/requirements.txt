@@ -1,1 +1,11 @@
+#
+# Layers requirements
+#
+aws-xray-sdk==2.8.0 # layers/layer_x_ray/requirements.txt
+wheel==0.37.0
+requests==2.26.0 # layers/layer_requests/requirements.txt
+
+#
+# Others dependenies used during development and testing
+#
 boto3==1.20.6

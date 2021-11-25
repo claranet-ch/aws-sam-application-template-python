@@ -29,6 +29,18 @@ Globals:
 
 Resources:
   #region --------------------------------------------------------------- Layers
+  #
+  # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/building-layers.html#building-applications-examples
+  
+  LayerRequests:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${Project}-${Environment}-layer-requests"
+      ContentUri: layers/layer_requests/
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9 # Required to have AWS SAM build this layer
 
   LayerXRay:
     Type: AWS::Serverless::LayerVersion
@@ -37,6 +49,8 @@ Resources:
       ContentUri: layers/layer_x_ray/
       CompatibleRuntimes:
         - python3.9
+    Metadata:
+      BuildMethod: python3.9 # Required to have AWS SAM build this layer
 
   #endregion -------------------------------------------------------------------
 
@@ -59,7 +73,7 @@ Resources:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'*'"
               Access-Control-Allow-Methods: "'*'"
-      MinimumCompressionSize: 0
+      MinimumCompressionSize: 0 # compression enabled
       StageName: !Sub "${Environment}"
 
   #endregion -------------------------------------------------------------------
@@ -77,6 +91,7 @@ Resources:
       FunctionName: !Sub "${Project}-${Environment}-posts-get"
       Handler: handler.posts_get
       Layers:
+        - !Ref LayerRequests
         - !Ref LayerXRay
       Events:
         ApiEvent:
