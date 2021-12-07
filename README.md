@@ -104,8 +104,8 @@ Layers are built by AWS SAM when you run `sam build` command.
 
 **IMPORTANT**
 
-> Remember to add the content `requirements.txt` located in each layer folder, in
-the `requirements.txt` file inside the folder `tests/`. This will allow to write
+> Remember to add the content of `requirements.txt` located in each layer folder,
+in the `requirements.txt` file inside the folder `tests/`. This will allow to write
 and test your code locally.
 
 ### Testing
